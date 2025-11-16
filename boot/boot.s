@@ -1,25 +1,26 @@
-/* boot/boot.s */
+; boot/boot.s — NASM syntax Multiboot header + entry point
 
-.set ALIGN,    1<<0
-.set MEMINFO,  1<<1
-.set FLAGS,    ALIGN | MEMINFO
-.set MAGIC,    0x1BADB002
-.set CHECKSUM, -(MAGIC + FLAGS)
+BITS 32
 
-.section .multiboot
-.align 4
-.long MAGIC
-.long FLAGS
-.long CHECKSUM
+SECTION .multiboot
+align 4
 
-.section .text
-.global _start
-.extern kernel_main
+MAGIC     equ 0x1BADB002
+FLAGS     equ 1<<0 | 1<<1
+CHECKSUM  equ -(MAGIC + FLAGS)
+
+dd MAGIC
+dd FLAGS
+dd CHECKSUM
+
+SECTION .text
+global _start
+extern kernel_main
 
 _start:
-    cli                     # clear interrupts
-    call kernel_main        # call C entry point
+    cli
+    call kernel_main
 
 .hang:
-    hlt                     # halt CPU
+    hlt
     jmp .hang
