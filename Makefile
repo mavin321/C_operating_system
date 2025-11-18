@@ -15,7 +15,18 @@ ASFLAGS = -f elf32
 KERNEL_OBJS = \
     boot/boot.o \
     kernel/kernel.o \
-    kernel/terminal.o
+    kernel/terminal.o \
+    kernel/gdt.o \
+    kernel/gdt_asm.o \
+    kernel/idt.o \
+    kernel/idt_asm.o \
+    kernel/isr.o \
+    kernel/isr_asm.o \
+    kernel/irq.o \
+    kernel/timer.o \
+    kernel/keyboard.o \
+    kernel/memory.o
+
 
 all: myos.iso
 
@@ -24,6 +35,12 @@ boot/boot.o: boot/boot.s
 
 kernel/%.o: kernel/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+kernel/%.o: kernel/%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+kernel/%.o: kernel/%.s
+	$(AS) $(ASFLAGS) -o $@ $<
 
 kernel.bin: $(KERNEL_OBJS)
 	$(LD) $(LDFLAGS) -o $@ $(KERNEL_OBJS)
