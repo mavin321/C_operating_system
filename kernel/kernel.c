@@ -9,15 +9,25 @@
 #include "timer.h"
 #include "keyboard.h"
 #include "memory.h"
+#include "multiboot.h"
+#include "graphics.h"
 
 static inline void enable_interrupts(void) {
     __asm__ volatile ("sti");
 }
 
-void kernel_main(void) {
-    terminal_initialize();
+void kernel_main(uint32_t magic, uint32_t mbi_addr)
+{
+    (void) magic; // ignore for now if you want
 
+    multiboot_info_t* mbi = (multiboot_info_t*)mbi_addr;
+
+    // Initialize text terminal first (for debugging/logging)
+    terminal_initialize();
     terminal_write_string("Welcome to MyOS!\n");
+    terminal_write_string("Switching to graphics (macOS-style GUI)...\n");
+
+    // Initialize GDT, IDT, ISRs, IRQs, heap, timer, keyboard as before
     terminal_write_string("Initializing GDT...\n");
     gdt_install();
 
@@ -42,7 +52,19 @@ void kernel_main(void) {
     terminal_write_string("Enabling interrupts...\n");
     enable_interrupts();
 
-    terminal_write_string("System initialized. Type on your keyboard!\n");
+    // Initialize graphics from Multiboot framebuffer info
+    if (graphics_init_from_multiboot(mbi) == 0) {
+        terminal_write_string("Graphics initialized. Drawing macOS-style desktop...\n");
+
+        gui_draw_desktop();
+        gui_draw_menu_bar();
+        gui_draw_dock();
+        gui_draw_macos_window(200, 150, 600, 400);
+    } else {
+        terminal_write_string("Failed to initialize graphics. Staying in text mode.\n");
+    }
+
+    terminal_write_string("System initialized.\n");
 
     while (1) {
         __asm__ volatile("hlt");

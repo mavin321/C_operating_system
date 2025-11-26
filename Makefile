@@ -25,7 +25,8 @@ KERNEL_OBJS = \
     kernel/irq.o \
     kernel/timer.o \
     kernel/keyboard.o \
-    kernel/memory.o
+    kernel/memory.o \
+	kernel/graphics.o
 
 
 all: myos.iso
@@ -47,12 +48,19 @@ kernel.bin: $(KERNEL_OBJS)
 
 $(GRUB_DIR)/grub.cfg:
 	mkdir -p $(GRUB_DIR)
-	echo 'set default=0'                 >  $(GRUB_DIR)/grub.cfg
-	echo 'set timeout=0'                >> $(GRUB_DIR)/grub.cfg
-	echo 'menuentry "MyOS" {'           >> $(GRUB_DIR)/grub.cfg
-	echo '  multiboot /boot/kernel.bin' >> $(GRUB_DIR)/grub.cfg
-	echo '  boot'                       >> $(GRUB_DIR)/grub.cfg
-	echo '}'                            >> $(GRUB_DIR)/grub.cfg
+	echo 'set default=0'                     >  $(GRUB_DIR)/grub.cfg
+	echo 'set timeout=0'                    >> $(GRUB_DIR)/grub.cfg
+	echo 'insmod all_video'                 >> $(GRUB_DIR)/grub.cfg
+	echo 'insmod gfxterm'                   >> $(GRUB_DIR)/grub.cfg
+	echo 'set gfxmode=1024x768x32'          >> $(GRUB_DIR)/grub.cfg
+	echo 'set gfxpayload=1024x768x32'       >> $(GRUB_DIR)/grub.cfg
+	echo 'terminal_output gfxterm'          >> $(GRUB_DIR)/grub.cfg
+	echo 'menuentry "MyOS" {'               >> $(GRUB_DIR)/grub.cfg
+	echo '  set gfxpayload=1024x768x32'     >> $(GRUB_DIR)/grub.cfg
+	echo '  multiboot /boot/kernel.bin'     >> $(GRUB_DIR)/grub.cfg
+	echo '  boot'                           >> $(GRUB_DIR)/grub.cfg
+	echo '}'                                >> $(GRUB_DIR)/grub.cfg
+
 
 myos.iso: kernel.bin $(GRUB_DIR)/grub.cfg
 	mkdir -p $(BOOT_DIR)
